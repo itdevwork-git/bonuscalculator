@@ -30,7 +30,8 @@
                 <div class="card p-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Select Dealer</label>
                     <select id="dealerSelect" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
-                        <!-- Options populated by JS -->
+                        <option value="all">All Projects (Average)</option>
+                        <!-- Other options populated by JS -->
                     </select>
 
                     <label class="block text-sm font-medium text-gray-700 mt-6 mb-2">Total Bounty (AUD)</label>
@@ -99,6 +100,30 @@
             dealerData.push({ name, ...standardStats });
         });
 
+        // Calculate Global Averages
+        const calculateAverages = () => {
+            const count = dealerData.length;
+            const avg = { name: "All Projects (Average)", rodel: 0, marge: 0, kent: 0, rowell: 0, paolo: 0, michael: 0 };
+            dealerData.forEach(d => {
+                avg.rodel += d.rodel;
+                avg.marge += d.marge;
+                avg.kent += d.kent;
+                avg.rowell += d.rowell;
+                avg.paolo += d.paolo;
+                avg.michael += d.michael;
+            });
+            avg.rodel = (avg.rodel / count).toFixed(2);
+            avg.marge = (avg.marge / count).toFixed(2);
+            avg.kent = (avg.kent / count).toFixed(2);
+            avg.rowell = (avg.rowell / count).toFixed(2);
+            avg.paolo = (avg.paolo / count).toFixed(2);
+            avg.michael = (avg.michael / count).toFixed(2);
+            avg.top = "Rodel (Overall Lead)";
+            return avg;
+        };
+
+        const globalAvg = calculateAverages();
+
         // Sort dealers alphabetically
         dealerData.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -117,27 +142,28 @@
         });
 
         function calculate() {
-            const dealer = dealerData[dealerSelect.value];
-            const totalBounty = parseFloat(bountyInput.value) || 0;
+            let dealer;
+            if (dealerSelect.value === "all") {
+                dealer = globalAvg;
+            } else {
+                dealer = dealerData[dealerSelect.value];
+            }
             
+            const totalBounty = parseFloat(bountyInput.value) || 0;
             topContributorDisplay.textContent = `Top: ${dealer.top}`;
             
             const members = [
-                { name: 'Rodel', pct: dealer.rodel, color: 'blue' },
-                { name: 'Marge', pct: dealer.marge, color: 'green' },
-                { name: 'Kent', pct: dealer.kent, color: 'purple' },
-                { name: 'Rowell', pct: dealer.rowell, color: 'indigo' },
-                { name: 'Paolo', pct: dealer.paolo, color: 'orange' },
-                { name: 'Michael', pct: dealer.michael, color: 'gray' }
+                { name: 'Rodel', pct: parseFloat(dealer.rodel), color: 'blue' },
+                { name: 'Marge', pct: parseFloat(dealer.marge), color: 'green' },
+                { name: 'Kent', pct: parseFloat(dealer.kent), color: 'purple' },
+                { name: 'Rowell', pct: parseFloat(dealer.rowell), color: 'indigo' },
+                { name: 'Paolo', pct: parseFloat(dealer.paolo), color: 'orange' },
+                { name: 'Michael', pct: parseFloat(dealer.michael), color: 'gray' }
             ];
 
             resultsTable.innerHTML = '';
-            let sum = 0;
-
             members.forEach(m => {
                 const amount = (totalBounty * (m.pct / 100));
-                sum += amount;
-
                 const row = document.createElement('div');
                 row.className = "flex flex-col space-y-1";
                 row.innerHTML = `
